@@ -233,6 +233,29 @@ El fichero `gestion_de_huertos.feature` tendría:
 
 A diferencia de `generate feature` aquí no se crea un fichero `step_definitions.rb` con definiciones e implementaciones específicas ya que las mismas se encuentran dentro de las tratadas genéricamente dentro del MundoPepino.
 
+### Relación con modelo utilizando un nombre que no se corresponde con el mismo
+Con un ejemplo se entiende mejor, creo. Tenemos un modelo User y un modelo Garden y este último "belongs_to :author, class_name => 'User'", de tal forma que //a_garden.author// nos devuelve un User.
+
+Bien, pues para que la siguiente característica funcione correctamente:
+
+    Dado que tenemos un usuario llamado "Fidel"
+       Y que tenemos un jardín cuyo autor es "Fidel"
+
+Tengo que meter los siguentes mapeos en nuestro entorno:
+* En el mapeo de modelos (model_mappings):
+
+    /^autor(es)?$/i => User
+
+* En el mapeo de campos (field_mappings):
+
+    /^autor(es)?$/i => :author
+
+* Un mapeo adicional entre el nombre del campo en inglés y su modelo asociado (relation_model_mappings):
+
+    'author' => User
+
+Con estos mapeos también deberían funcionar el resto de definiciones de MP en las que se haga referencia a una relación.
+
 ## Definiciones implementadas en MundoPepino
 
 **Cada definición** existente en MundoPepino tiene **al menos un escenario** que comprueba:
@@ -248,13 +271,19 @@ Para todos los escenarios podríamos tener una narrativa genérica que expresase
 
 Sin embargo cada definición ha sido separada en un fichero `.feature` específico para poder enlazarlas desde este índice.
 
-Los **asteriscos (\*)** al final de la definición hacen referencia a las **definiciones oficialmente comunes** generadas en inglés por `script/generate cucumber`. Dos asteríscos (\*\*) hacen referencia a una definición presente en la feature autogenerada por `script/generate feature`.
 
 Como **convención general** los nombres correspondientes a modelos y campos pueden ir sin comillas pero los valores deben ir entre comillas (simples o dobles). Por ejemplo:
 
     Dado que tenemos un artículo que tiene como título "Título del artículo"
 
 En el ejemplo, "artículo" y "título" hacen referencia a un modelo y a un campo respectivamente y no van entre comillas (aunque podrían ir si quisiéramos) mientras que "Título del artículo" es el valor que se asignará en "título" y como tal va entrecomillado (y si quitásemos sus comillas la expresión no sería reconocida o lo sería incorrectamente). 
+
+MundoPepino soporta el uso de **claves I18n** en lugar de literales "a pincho" (o "hardcoded") en la mayoría de interacciones con el navegador (p.e. "Cuando pincho en el botón app.send" en lugar de "Cuando pincho en el botón 'Enviar'") así como en las comprobaciones de existencia de textos (p.e. "Debería ver el texto 'activerecord.models.user'" en lugar de "Debería ver el texto 'Usuario'").
+
+Se puede utilizar la interpolación separando el hash con los parámetros de la clave con una coma sin espacios. Por ejemplo:
+
+    Entonces debería ver la etiqueta H1 con el valor "app.users.new_friend,{:name => 'Lucas'}"
+
 
 ### Dado el contexto (Givens)
 
@@ -265,42 +294,43 @@ Convenciones generales:
 * asignación de valores con el verbo **tener** en tercera persona (p.e. "Dado que dichas Acelgas **tienen** como variedad Amarilla de Lyon")
 * todas las definiciones para "Cuando algo ocurre" (o *Then's*, ver más abajo) son válidas también como "Dado el contexto" incorporándoles el prefijo "que" (p.e. "Dado que visito la portada").
 
+
 #### Creación de uno o varios registros asignándoles opcionalmente un nombre
     Dado que tenemos Un Producto llamado "Acelgas" 
-[más ejemplos](master/features/contexto-creacion-simple.feature)
+[más ejemplos](master/features/es_ES/contexto-creacion-simple.feature)
 
 #### Creación de uno o varios registros con un valor en un campo
     Dado que tenemos un huerto cuya área es de "1200" metros cuadrados
-[más ejemplos](master/features/contexto-creacion-con-asignacion.feature)
+[más ejemplos](master/features/es_ES/contexto-creacion-con-asignacion.feature)
 
 #### Creación de uno o varios recursos a partir de una **step table**
     Dado que tenemos el siguiente Huerto:
            | nombre   | área | latitud  | latitud   | abono   |
            | Secano-1 | 35   | N 40° 44 | W 003° 48 | FSF-315 |
-[más ejemplos](master/features/contexto-creacion-desde-step-table.feature)
+[más ejemplos](master/features/es_ES/contexto-creacion-desde-step-table.feature)
 
 #### Asignación de un valor en un campo de un recurso concreto
     Dado que el Tomate "A" tiene como variedad "Raf"
-[más ejemplos](master/features/contexto-asignacion-de-valor-en-recurso.feature)
+[más ejemplos](master/features/es_ES/contexto-asignacion-de-valor-en-recurso.feature)
 
 #### Asignación de un valor en un campo del último (o últimos) recurso mencionado
     Dado que dichas Acelgas tienen como Variedad "Gigante carmesí"
-[más ejemplos](master/features/contexto-asignacion-de-valor-en-recurso-mencionado.feature)
+[más ejemplos](master/features/es_ES/contexto-asignacion-de-valor-en-recurso-mencionado.feature)
 
 #### Asignación simple a un campo **has\_many** (normal o polimórfico) del último recurso mencionado
     Dado que dicho Huerto tiene Tres Bancales "Acelgas, Tomates y Pepinos"
-[más ejemplos (has_many normal)](master/features/contexto-asignacion-has-many-simple.feature) - 
-[más ejemplos (has_many polimórfico)](master/features/contexto-asignacion-has-many-polymorphic-simple.feature)
-[más ejemplos (has_many through)](master/features/contexto-asignacion-has-many-through-simple.feature)
+[más ejemplos (has_many normal)](master/features/es_ES/contexto-asignacion-has-many-simple.feature) - 
+[más ejemplos (has_many polimórfico)](master/features/es_ES/contexto-asignacion-has-many-polymorphic-simple.feature)
+[más ejemplos (has_many through)](master/features/es_ES/contexto-asignacion-has-many-through-simple.feature)
 
 #### Asignación en campo **has\_many** (normal o polimórfico) del último recurso mencionado desde una step-table
     Dado que dicho Huerto tiene los siguientes Bancales:
            | nombre | longitud | cultivo |  matas |
            |  A-01  |    12    | Patatas |     16 |
            |  A-02  |    12    | Tomates |     18 |
-[más ejemplos (has_many normal)](master/features/contexto-asignacion-has-many-desde-fit-table.feature) - 
-[más ejemplos (has_many polimórfico)](master/features/contexto-asignacion-has-many-polymorphic-desde-fit-table.feature)
-[más ejemplos (has_many through)](master/features/contexto-asignacion-has-many-through-desde-fit-table.feature)
+[más ejemplos (has_many normal)](master/features/es_ES/contexto-asignacion-has-many-desde-fit-table.feature) - 
+[más ejemplos (has_many polimórfico)](master/features/es_ES/contexto-asignacion-has-many-polymorphic-desde-fit-table.feature)
+[más ejemplos (has_many through)](master/features/es_ES/contexto-asignacion-has-many-through-desde-fit-table.feature)
 
 ### Cuando algo ocurre (Whens)
 
@@ -311,37 +341,46 @@ Convenciones generales:
 
 #### Solicitud de una URL específica opcionalmente indicada con un nombre coloquial
     Cuando visito la portada
-[más ejemplos](master/features/cuando-visito-url-especifica.feature)
+[más ejemplos](master/features/es_ES/cuando-visito-url-especifica.feature)
 #### Solicitud de la URL asociada a un recurso concreto
     Cuando visito la página del huerto "H-01"
-[más ejemplos](master/features/cuando-visito-url-de-recurso-especifico.feature)
+[más ejemplos](master/features/es_ES/cuando-visito-url-de-recurso-especifico.feature)
 #### Solicitud de la URL asociada al último recurso definido
     Cuando visito su página
-[más ejemplos](master/features/cuando-visito-url-de-recurso-mencionado.feature)
+[más ejemplos](master/features/es_ES/cuando-visito-url-de-recurso-mencionado.feature)
 #### Solicitud de la URL del índice (index) de un tipo de recurso (modelo)
     Cuando visito la página de Tomates
-[más ejemplos](master/features/cuando-visito-url-de-indice-de-tipo-de-recurso.feature)
+[más ejemplos](master/features/es_ES/cuando-visito-url-de-indice-de-tipo-de-recurso.feature)
 #### Solicitud de la URL de creación de un recurso
     Cuando visito la página de creación de Tomate
-[más ejemplos](master/features/cuando-visito-url-de-creacion.feature)
+[más ejemplos](master/features/es_ES/cuando-visito-url-de-creacion.feature)
+#### Solicitud de la URL de edición de un recurso
+    Cuando visito la página de edición del huerto "H-01"
+[más ejemplos](master/features/es_ES/cuando-visito-url-de-edicion.feature)
 #### Pincho en un enlace \*
     Cuando pulso el enlace "Volver"
-[más ejemplos](master/features/cuando-pulso-el-enlace.feature)
+[más ejemplos](master/features/es_ES/cuando-pulso-el-enlace.feature)
 #### Pincho/pulso un bóton (*submit*) \*
     Cuando pulso en el botón Enviar
-[más ejemplos](master/features/cuando-pulso-el-boton.feature)
+[más ejemplos](master/features/es_ES/cuando-pulso-el-boton.feature)
 #### Adjunto un fichero (*file*) \*
     Cuando adjunto el fichero "images/cucumber.jpg" en Fotografía actual
-[más ejemplos](master/features/cuando-adjunto-el-fichero.feature)
+[más ejemplos](master/features/es_ES/cuando-adjunto-el-fichero.feature)
 #### Elijo una opción (*radiobutton*) \*
     Cuando elijo el color "VERDE"
-[más ejemplos](master/features/cuando-elijo-de-radiobutton.feature)
+[más ejemplos](master/features/es_ES/cuando-elijo-de-radiobutton.feature)
 #### Marco (o desmarco) una casilla (*checkbox*) \*
     Cuando marco "color verde"
-[más ejemplos](master/features/cuando-marco-el-checkbox.feature)
+[más ejemplos](master/features/es_ES/cuando-marco-el-checkbox.feature)
 #### Relleno/completo un campo con un texto (*text* o *textarea*) \*
      Cuando completo 'nombre' con 'Wadus'
-[más ejemplos](master/features/cuando-relleno-el-campo.feature)
+[más ejemplos](master/features/es_ES/cuando-relleno-el-campo.feature)
+#### Relleno/completo varios campos (*text* o *textarea*) desde una step-table \*
+     Cuando completo:
+       | Campo    | Valor    |
+       | Nombre   | Lechuga  |
+       | Color    | Verde    |
+[más ejemplos](master/features/es_ES/cuando-relleno-los-campos.feature)
 #### Selecciono opción/opciones
 ##### Selecciono una opción de una lista (*select*) \*
      Cuando selecciono "Hortalizas" en el listado de "Tipos de cultivo"
@@ -357,11 +396,11 @@ Convenciones generales:
      Cuando selecciono 1 de septiembre de 1998 como fecha
 ##### Selecciono fecha para un campo concreto \*
      Cuando selecciono 2 de marzo de 2009 como fecha para el comienzo de la poda
-[más ejemplos](master/features/cuando-selecciono-en-listado.feature)
+[más ejemplos](master/features/es_ES/cuando-selecciono-en-listado.feature)
 
 #### Borro el enésimo recurso desde la página de su índice (index) \*\*
      Cuando borro el Bancal en 6ª posición
-[más ejemplos](master/features/cuando-borro-el-enesimo-recurso.feature)
+[más ejemplos](master/features/es_ES/cuando-borro-el-enesimo-recurso.feature)
 
 ### Entonces pasa (Thens)
 
@@ -373,26 +412,46 @@ Convenciones generales:
 
 #### Veo (o no) un texto \*
     Entonces debo ver el texto "IVA incluido"
-[más ejemplos](master/features/veo-el-texto.feature)
-#### Veo (o no) una etiqueta HTML opcionalmente con un contenido concreto
-    Entonces no debo ver la etiqueta div#title con el valor "Surco"
-[más ejemplos](master/features/veo-etiqueta-con-valor.feature)
+[más ejemplos](master/features/es_ES/veo-el-texto.feature)
+#### Veo (o no) una serie de textos expresados en una step-table (sin cabeceras)
+    Entonces debo ver los siguientes textos:
+     | Muestras de tomate       |
+     | Restos de lechuga        |
+     | Treinta kilos de melones |
+[más ejemplos](master/features/es_ES/veo-los-siguientes-textos.feature)
+#### Veo (o no) una etiqueta/selector opcionalmente con un contenido concreto
+    Entonces no debo ver la etiqueta "div.title a" con el valor "Surco"
+[más ejemplos](master/features/es_ES/veo-etiqueta-con-valor.feature)
+
+#### Veo (o no) varios selectores opcionalmente determinados valores (step-table)
+    Entonces debería ver los siguientes selectores:
+             | Selector       | Valor                  |
+             | h1             | Mundo Pepino           |
+[más ejemplos]/master/features/es_ES/veo-etiquetas-con-valores.feature
+#### Leo (o no) un texto, quitando las etiquetas HTML
+    Entonces debo leer el texto "IVA incluido"
+[más ejemplos](master/features/es_ES/leo-el-texto.feature)
+#### Leo (o no), quitando las etiquetas HTML, una serie de textos expresados en una step-table
+    Entonces debo leer los siguientes textos:
+     | Muestras de tomate       |
+     | Restos de lechuga        |
+[más ejemplos](master/features/es_ES/leo-los-siguientes-textos.feature)
 #### Veo (o no) un enlace a una URL específica (opcionalmente indicada con un nombre coloquial)
     Entonces debo ver un enlace a la página de recuperación de contraseña    
-[más ejemplos](master/features/veo-enlace-a-url-especifica)
+[más ejemplos](master/features/es_ES/veo-enlace-a-url-especifica)
 #### Veo (o no) un enlace a una URL relativa a una visitada con anterioridad
     Entonces debo ver un enlace a la siguiente página
-[más ejemplos](master/features/veo-enlace-a-url-relativa)
+[más ejemplos](master/features/es_ES/veo-enlace-a-url-relativa)
 #### Veo marcada (o desmarcada) una casilla (*checkbox*) \*
     Entonces veo marcado "Acepto las condiciones del servicio"
-[más ejemplos](master/features/veo-el-checkbox.feature)
+[más ejemplos](master/features/es_ES/veo-el-checkbox.feature)
 
-#### Veo una tabla con determinados valores en sus celdas (*table>tr>td*) \*
-    Entonces veo una tabla con el siguiente contenido:
+#### Veo una tabla con determinados valores en sus celdas \*
+    Entonces veo la tabla "bancales" con el siguiente contenido:
       | nombre | longitud | cultivo |  matas |
       |  A-01  |    12    | Patatas |     16 |
       |  A-02  |    12    | Tomates |     18 |
-[más ejemplos](master/features/veo-una-tabla-con-determinado-contenido.feature)
+[más ejemplos](master/features/es_ES/veo-una-tabla-con-determinado-contenido.feature)
 
 #### Veo un formulario con determinados campos convenientemente etiquetados \*
     Entonces veo un formulario con los siguientes campos:
@@ -400,29 +459,30 @@ Convenciones generales:
       | Login      | textfield |
       | Contraseña | password  |
       | Entrar     | submit    |
-[más ejemplos](master/features/veo-un-formulario-con-los-siguientes-campos.feature)
+[más ejemplos](master/features/es_ES/veo-un-formulario-con-los-siguientes-campos.feature)
 
 
 #### Tenemos en BBDD uno o más registros de un modelo opcionalmente con un nombre concreto
     Entonces tenemos en la base de datos un Abono llamado "FSF-03"
-[más ejemplos](master/features/tenemos-en-bbdd-registros.feature)
+[más ejemplos](master/features/es_ES/tenemos-en-bbdd-registros.feature)
 
 #### Tenemos en BBDD un valor en un campo de un registro concreto
     Entonces el Huerto "H-02" tiene en base de datos como Área "2" hectáreas
-[más ejemplos](master/features/tenemos-en-bbdd-valor-en-campo-de-registro.feature)
+[más ejemplos](master/features/es_ES/tenemos-en-bbdd-valor-en-campo-de-registro.feature)
 
 #### Tenemos en BBDD un valor en un campo del registro mencionando anteriormente
     Entonces tiene en base de datos como Área "2" hectáreas
-[más ejemplos](master/features/tenemos-en-bbdd-valor-en-campo-de-registro-mencionado.feature)
+[más ejemplos](master/features/es_ES/tenemos-en-bbdd-valor-en-campo-de-registro-mencionado.feature)
 
 #### Tenemos en BBDD una asociación **has\_many** en un registro concreto
     Entonces el Huerto "H-02" tiene en base de datos un Bancal "A"
-[más ejemplos](master/features/tenemos-en-bbdd-asocioacion-has-many-en-registro.feature)
+[más ejemplos](master/features/es_ES/tenemos-en-bbdd-asocioacion-has-many-en-registro.feature)
 
 #### Tenemos en BBDD una asociación **has\_many**  en un registro mencionando anteriormente
     Entonces tiene en base de datos un Bancal "B"
-[más ejemplos](master/features/tenemos-en-bbdd-asocioacion-has-many-en-registro-mencionado.feature)
+[más ejemplos](master/features/es_ES/tenemos-en-bbdd-asocioacion-has-many-en-registro-mencionado.feature)
 
+(\*) Los **asteriscos** al final de la definición hacen referencia a las **definiciones oficialmente comunes** generadas en inglés por `script/generate cucumber`. Dos asteríscos (\*\*) hacen referencia a una definición presente en la feature autogenerada por `script/generate feature`.
 
 ## License
 

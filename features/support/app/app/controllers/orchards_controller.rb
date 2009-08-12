@@ -4,7 +4,11 @@ class OrchardsController < ApplicationController
   end      
 
   def show
-    @orchard = Orchard.find(params[:id])
+    @orchard = Orchard.find(params[:id][/^(\d+)-.*$/, 1])
+  end
+
+  def edit
+    @orchard = Orchard.find(params[:id][/^(\d+)-.*$/, 1])
   end
 
   def new
@@ -15,9 +19,19 @@ class OrchardsController < ApplicationController
     @orchard = Orchard.new(params[:orchard])
     if @orchard.save
       flash[:notice] = 'Huerto creado con éxito.'
-      redirect_to(@orchard)
+      redirect_to @orchard
     else
       render :action => "new"
+    end
+  end
+
+  def update
+    @orchard = Orchard.find(params[:id])
+    if @orchard.update_attributes(params[:orchard])
+      flash[:notice] = 'Orchard was successfully updated.'
+      redirect_to @orchard
+    else
+      render :action => "edit"
     end
   end
 

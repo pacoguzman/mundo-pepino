@@ -6,9 +6,13 @@ class Orchard < ActiveRecord::Base
 
   def watering_time(type)
     if sw = self.send("#{type}_watering")
-      "#{sw.hour}:#{sw.min}"
+      format("%d:%02d", sw.hour, sw.min)
     else
       '--:--'
     end
+  end
+
+  def to_param
+    "#{id}-#{name.parameterize}"
   end
 end

@@ -9,15 +9,14 @@ begin
 rescue
   # NO NEED TO CREATE ALIASES IN pre-0.2
 end
-require 'definiciones/dado_contexto'
-require 'definiciones/cuando_ocurre'
-require 'definiciones/entonces_pasa'
+require 'definitions/es_ES.rb'
 
 String.add_mapper(:real_value, {
   /^verdader[oa]$/i  => true,
   /^fals[ao]$/i      => false
 }) { |value| value }
 String.add_mapper :model
+String.add_mapper :relation_model
 String.add_mapper(:field) { |str| :name if str =~ /nombres?/ }
 String.add_mapper(:url, /^la (portada|home)/i => '/') do |string| 
   string if string =~ /^\/.*$|^https?:\/\//i
@@ -39,7 +38,7 @@ String.add_mapper(:crud_action,
   /^creaci[óo]n$/i           => 'new',
   /^nuev(?:o|a|o\/a|a\/o)$/i => 'new',
   /^cambio$/i                => 'edit',
-  /^modificaci[oó]n$/i       => 'edit',
+  /^modificaci[oó]n(?:es)?$/i       => 'edit',
   /^edici[oó]n$/i            => 'edit')
 String.add_mapper(:month,
   :enero           => 'January',
@@ -60,8 +59,17 @@ String.add_mapper(:content_type,
   /\.gif$/   => 'image/gif') { |str| 'text/plain' }
 String.add_mapper(:underscored) { |string| string.gsub(/ +/, '_') }
 String.add_mapper(:unquoted) { |str| str =~ /^['"](.*)['"]$/ ? $1 : str}
+String.add_mapper(:translated) { |str|
+  if str =~ /^[a-z_]+\.[a-z_]+[a-z_\.]+$/
+    I18n.translate(str)
+  elsif str =~ /^([a-z_]+\.[a-z_]+[a-z_\.]+),(\{.+\})$/
+    I18n.translate($1, eval($2))
+  else
+    str
+  end
+}
 
-class MundoPepino < Cucumber::Rails::World
+module MundoPepino
   # API común para las instancias que van referenciándose en el escenario.
   module Mencionado 
     def m_instance
@@ -139,9 +147,9 @@ class MundoPepino < Cucumber::Rails::World
     raw_attributes.each do |k, v|
       if k =~ /^(.+)_id$/
         if polymorph = raw_attributes.delete($1 + '_type')
-          attributes[$1.to_sym] = eval(polymorph).find(v.to_i)
-        else 
-          attributes[$1.to_sym] = eval($1.capitalize).find(v.to_i)
+          attributes[$1.to_sym] = polymorph.constantize.find(v.to_i)
+        else
+          attributes[$1.to_sym] = ($1.to_relation_model || $1.camelize.constantize).find(v.to_i)
         end
       else
         attributes[k] = real_value_for(v)
@@ -177,9 +185,10 @@ class MundoPepino < Cucumber::Rails::World
     if attributes.any?
       attribs = Hash.new
       attributes.each do |key, value|
-        if child_model = key.to_s.to_model
+        if child_model = (key.to_s.to_model || key.to_s.to_relation_model)
           child = add_resource(child_model, field_for(child_model, 'nombre') => value)
-          attribs[child_model.name.underscore + '_id'] = child.id
+          field_name = key.to_s.to_relation_model ? key : child_model.name.underscore
+          attribs["#{field_name}_id"] = child.id
         else
           attribs[key] = value
         end
@@ -264,7 +273,7 @@ class MundoPepino < Cucumber::Rails::World
     "#{model && model.name}::#{campo}".to_field || campo.to_field
   end
   def shouldify(should_or_not)
-    affirmative = 'debo|debo ver|veo|deber[ií]a|deber[íi]a ver'
+    affirmative = 'debo|debo ver|veo|deber[ií]a|deber[íi]a ver|leo|debo leer|deber[ií]a leer'
     should_or_not =~ /^(#{affirmative})$/i ? :should : :should_not
   end
 
@@ -289,7 +298,7 @@ class MundoPepino < Cucumber::Rails::World
       if mentioned.m_new_record?
         eval("#{mentioned.m_plural}_path")
       else
-        eval("#{mentioned.m_singular}_path(#{mentioned.m_instance.id})")
+        eval("#{mentioned.m_singular}_path(mentioned.m_instance)")
       end
     else
       raise WithoutResources
@@ -313,6 +322,10 @@ class MundoPepino < Cucumber::Rails::World
     else
       raise ModelNotMapped.new(modelo)
     end
+  end
+
+  def last_mentioned_called(name)
+    detect_first @resources.flatten, name
   end
 
   def recursive_group_search(model, resources)
@@ -414,7 +427,7 @@ class MundoPepino < Cucumber::Rails::World
       values = add_resource(child_model,
         valores.map { |val| { child_name_field => val } })
       values = [ values ] unless values.is_a?(Array)
-      [ child_model.name.underscore, values ]
+      [ campo.to_field || child_model.name.underscore, values ]
     else
       [ field_for(mentioned.m_model, campo), valores ]
     end 
@@ -435,7 +448,8 @@ class MundoPepino < Cucumber::Rails::World
     res = last_mentioned
     if child_model = campo.to_model
       child = child_model.find_by_name(valor)
-      (res.send child_model.name.underscore).should == child
+      child_field = campo.to_field || child_model.name.underscore
+      (res.send child_field).should == child
     elsif field = field_for(res.class, campo)
       (res.send field).to_s.should == valor.to_s
     else
@@ -467,7 +481,7 @@ class MundoPepino < Cucumber::Rails::World
   end
   
   def find_field_and_do_with_webrat(action, campo, options = nil)
-    do_with_webrat action, campo.to_unquoted, options # a pelo (localización vía labels)
+    do_with_webrat action, campo.to_unquoted.to_translated, options # a pelo (localización vía labels)
   rescue Webrat::NotFoundError
     field = campo_to_field(campo, last_mentioned_model)
     begin 
