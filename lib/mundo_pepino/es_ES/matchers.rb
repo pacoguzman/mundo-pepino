@@ -39,6 +39,6 @@ end
 
 class << self
   delegate :_numero_, :_cuyo_, :_pagina_, :_pagina_desde_rutas_, :_fecha_y_o_hora_,
-    :_veo_o_no_, :_leo_o_no_, :_tenemos_en_bbdd_, :_tiene_en_bbdd_, :_pulso_,
+    :_veo_o_no_, :_leo_o_no_, :_tenemos_en_bbdd_, :_tiene_en_bbdd_,
     :to => 'MundoPepino::Matchers::Bites'
 end
