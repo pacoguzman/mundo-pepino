@@ -81,7 +81,7 @@ class CaracteristicaGenerator < Rails::Generator::NamedBase
         end
       end
       m.template  'caracteristica.erb',
-        "caracteristicas/gestion_de_#{modelo_en_plural.downcase}.feature"
+        "features/gestion_de_#{modelo_en_plural.downcase}.feature"
     end
   end
 
