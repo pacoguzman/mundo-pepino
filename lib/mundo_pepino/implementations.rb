@@ -35,6 +35,24 @@ module MundoPepino
       end
     end
 
+    def given_or_when_i_do_a_page_request(page)
+      do_visit MundoPepino::Matchers.page(page)
+    end
+
+    def then_i_see_or_not_the_text(should, text, selector=nil)
+      within selector || 'html' do
+        response.send shouldify(should), contain(text.to_unquoted.to_translated.to_regexp)
+      end
+    end
+
+    def given_or_when_i_follow_the_link(link, selector=nil)
+      if selector
+        click_link_within selector, link
+      else
+        click_link link
+      end
+    end
+
     # DB CHECKS
     def then_we_have_a_number_of_instances_in_our_database(raw_number, raw_model, name)
       model = raw_model.to_unquoted.to_model

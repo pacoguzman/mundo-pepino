@@ -1,3 +1,5 @@
+require 'nokogiri'
+
 module MundoPepino
   module ImplementationsApi
     def real_value_for(v)
@@ -24,16 +26,14 @@ module MundoPepino
       if field
         "#{model_name}#{field}".to_field || field.to_field
       else
+        "#{model_name}name".to_field || 'name'.to_field || 
         # The use of "nombre" the name field mapping is deprecated
-        "#{model_name}nombre".to_field || 'nombre'.to_field || 
-        # "Model::name" or "name" (for a global mapping) is the right use.
-        "#{model_name}name".to_field || 'name'.to_field || :name
+        "#{model_name}nombre".to_field || 'nombre'.to_field || :name
       end
     end
 
     def shouldify(should_or_not)
-      affirmative = 'debo|debo ver|veo|deber[ií]a|deber[íi]a ver|leo|debo leer|deber[ií]a leer'
-      should_or_not =~ /^(#{affirmative})$/i ? :should : :should_not
+      should_or_not =~ /^(#{MundoPepino::Matchers::Bites._should_})$/i ? :should : :should_not
     end
   
     def not_shouldify(should_or_not)
@@ -181,8 +181,8 @@ module MundoPepino
       unquoted_model = raw_model.to_unquoted
       if model = unquoted_model.to_model
         pile_up model.new
-        eval("#{model.table_name}_path")
-      elsif url = "#{the_page_of}#{raw_model}".to_url
+        MundoPepino.world.send "#{model.table_name}_path"
+      elsif url = "#{the_page_of} #{raw_model}".to_url
         url
       else
         raise MundoPepino::ModelNotMapped.new(unquoted_model)

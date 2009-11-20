@@ -1,8 +1,4 @@
 # MundoPepino's step definitions in es_ES
-Dado /^que estoy en (?!#{_pagina_desde_rutas_})(.+)$/ do |pagina|
-  do_visit pagina.to_unquoted.to_url
-end 
-
 # Creación simple con nombre opcional
 Dado /^(?:que tenemos )?(#{_numero_}) (?!.+ #{_cuyo_})(.+?)(?: (?:llamad[oa]s? )?['"](.+)["'])?$/i do |numero, modelo, nombre|
   given_we_have_a_number_of_instances_called numero, modelo, nombre 
@@ -79,59 +75,16 @@ end
 
 ###############################################################################
 
-Cuando /^(?:que )?visito ((?:el|la) #{_pagina_} de )([\w]+|['"][\w ]+["'])$/i do |la_pagina_de, modelo_en_crudo|
-  do_visit resource_index_or_mapped_page(la_pagina_de, modelo_en_crudo)
-end
-
-Cuando /^(?:que )?visito (?:el|la) #{_pagina_} (?:del|de la) (.+) ['"](.+)["']$/i do |modelo, nombre|
-  if resource = last_mentioned_of(modelo, nombre)
-    do_visit send("#{resource.class.name.underscore}_path", resource)
-  else
-    raise MundoPepino::ResourceNotFound.new("model #{modelo}, name #{nombre}")
-  end
-end
-
-Cuando /^(?:que )?visito la p[áa]gina de (?!la)([\w\/]+) (?:de |de la |del )?(.+?)(?: (['"].+["']))?$/i do |accion, modelo, nombre|
-  action = accion.to_crud_action or raise(MundoPepino::CrudActionNotMapped.new(accion))
-  if action != 'new'
-    nombre, modelo = modelo, nil unless nombre
-    resource = if modelo && modelo.to_unquoted.to_model
-      last_mentioned_of(modelo, nombre.to_unquoted)
-    else
-      last_mentioned_called(nombre.to_unquoted)
-    end
-    if resource
-      do_visit send("#{action}_#{resource.mr_singular}_path", resource)
-    else
-      MundoPepino::ResourceNotFound.new("model #{modelo}, name #{nombre}")
-    end
-  else
-    model = modelo.to_unquoted.to_model or raise(MundoPepino::ModelNotMapped.new(modelo))
-    pile_up model.new
-    do_visit send("#{action}_#{model.name.underscore}_path")
-  end
-end
-
-Cuando /^(?:que )?visito su (?:p[áa]gina|portada)$/i do
-  do_visit last_mentioned_url
-end
-
-Cuando /^(?:que )?visito (?!#{_pagina_desde_rutas_})(.+)$/i do |pagina|
-  do_visit pagina.to_unquoted.to_url
+Cuando /^(?:que )?#{_visito_} (.+)$/i do |pagina|
+  given_or_when_i_do_a_page_request pagina
 end
 
 Cuando /^(?:que )?#{_pulso_} (?:en )?el bot[oó]n (.+)$/i do |boton|
   click_button(boton.to_unquoted.to_translated)
 end
 
-Cuando /^(?:que )?#{_pulso_} (?:en )?el (enlace|enlace ajax|enlace con efectos) (.+)$/i do |tipo, enlace|
-  options = {}
-  options[:wait] = case tipo.downcase
-  when 'enlace con efectos' then :effects
-  when 'enlace ajax' then :ajax
-  else :page
-  end
-  click_link(enlace.to_unquoted.to_translated, options)
+Cuando /^(?:que )?#{_pulso_} (?:en )?el (#{_enlace_}) (.+?)(?:#{_que_existe_} #{_dentro_de_} ['"]?(.+?)["']?)?$/i do |tipo, enlace, selector|
+  given_or_when_i_follow_the_link enlace.to_unquoted.to_translated, selector
 end
 
 Cuando /^(?:que )?#{_pulso_} (?:en )?los (?:siguientes )?(?:enlaces|botones)(?: y (?:enlaces|botones))?:$/i do |tabla|
@@ -153,7 +106,7 @@ Cuando /^(?:que )?(?:completo|relleno) (?!#{_localizador_de_atributo_anidado_(fa
   find_field_and_do_with_webrat :fill_in, campo, :with => valor
 end
 
-Cuando /^(?:que )?(?:completo|relleno):$/i do |tabla|
+Cuando /^(?:que )?(?:completo|relleno)(?: los(?: siguientes)? campos)?:$/i do |tabla|
   tabla.raw[1..-1].each do |row|
     Cuando "relleno \"#{row[0].gsub('"', '\"')}\" con \"#{row[1].gsub('"', '\"')}\""
   end
@@ -222,8 +175,8 @@ Cuando /^borro (?:el|la|el\/la) (.+) en (?:la )?(\w+|\d+)(?:ª|º)? posición$/ 
 end
 
 #############################################################################
-Entonces /^(#{_veo_o_no_}) el texto (.+)?$/i do |should, text|
-  eval('response.body.send(shouldify(should))') =~ /#{Regexp.escape(text.to_unquoted.to_translated)}/m
+Entonces /^(#{_veo_o_no_}) el texto (.+?)(?: #{_dentro_de_} ['"]?(.+?)["']?)?$/i do |should, text, selector|
+  then_i_see_or_not_the_text should, text, selector
 end
 
 Entonces /^(#{_leo_o_no_}) el texto (.+)?$/i do |should, text|
@@ -247,7 +200,7 @@ Entonces /^(#{_leo_o_no_}) los siguientes textos:$/i do |should, texts|
   end
 end
 
-Entonces /^(#{_veo_o_no_}) (?:en )?(?:el selector|la etiqueta|el tag) (["'].+?['"]|[^ ]+)(?:(?: con)? el (?:valor|texto) )?["']?([^"']+)?["']?$/ do |should, tag, value |
+Entonces /^(#{_veo_o_no_}) #{_la_etiqueta_} (["'].+?['"]|[^ ]+)(?:(?: con)? el (?:valor|texto) )?["']?([^"']+)?["']?$/ do |should, tag, value |
   lambda {
     if value
       response.should have_tag(tag.to_unquoted, /.*#{value.to_translated}.*/i)
@@ -360,8 +313,8 @@ Entonces /^#{_tiene_en_bbdd_} (#{_numero_}) ['"]?([^"']+)["']?$/ do |numero, mod
   last_mentioned_should_have_n_children(modelo_hijo, numero)
 end
 
-Entonces /^#{_debo_estar_en_} ((?:el|la) #{_pagina_} de )([\w\s]+|['"][\w ]+["'])$/i do |la_pagina_de, modelo_en_crudo|
-  URI.parse(current_url).path.should == resource_index_or_mapped_page(la_pagina_de, modelo_en_crudo)
+Entonces /^#{_debo_estar_en_} (#{_el_listado_de_}) ([\w\s]+|['"][\w ]+["'])$/i do |el_listado_de, modelo_en_crudo|
+  URI.parse(current_url).path.should == resource_index_or_mapped_page(el_listado_de, modelo_en_crudo)
 end
 
 Entonces /^#{_debo_estar_en_} (?!#{_pagina_desde_rutas_})(.+)$/i do |pagina|
