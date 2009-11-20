@@ -29,14 +29,16 @@ module MundoPepino
         children_model = params[:children_model].to_unquoted.to_model
         resources = (mentioned.is_a?(Array) ? mentioned : [mentioned])
         resources.each do |resource|
+          options = parent_options(resource, children_model)
+          options[:model] = children_model
           add_resource children_model, 
-            translated_hashes(params[:step_table].raw, parent_options(resource, children_model))
+            translated_hashes(params[:step_table].raw, options)
         end
       end
     end
 
     def given_or_when_i_do_a_page_request(page)
-      do_visit MundoPepino::Matchers.page(page)
+      do_visit page.to_unquoted.to_url
     end
 
     def then_i_see_or_not_the_text(should, text, selector=nil)

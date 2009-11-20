@@ -83,7 +83,7 @@ Cuando /^(?:que )?#{_pulso_} (?:en )?el bot[oó]n (.+)$/i do |boton|
   click_button(boton.to_unquoted.to_translated)
 end
 
-Cuando /^(?:que )?#{_pulso_} (?:en )?el (#{_enlace_}) (.+?)(?:#{_que_existe_} #{_dentro_de_} ['"]?(.+?)["']?)?$/i do |tipo, enlace, selector|
+Cuando /^(?:que )?#{_pulso_} (?:en )?el (?:#{_enlace_}) (.+?)(?:#{_que_existe_} #{_dentro_de_} ['"]?(.+?)["']?)?$/i do |enlace, selector|
   given_or_when_i_follow_the_link enlace.to_unquoted.to_translated, selector
 end
 
@@ -314,5 +314,5 @@ Entonces /^#{_tiene_en_bbdd_} (#{_numero_}) ['"]?([^"']+)["']?$/ do |numero, mod
 end
 
 Entonces /^#{_debo_estar_en_} (.+)$/i do |pagina|
-  URI.parse(current_url).path.should == MundoPepino::Matchers.page(pagina)
+  URI.parse(current_url).path.should == pagina.to_unquoted.to_url
 end

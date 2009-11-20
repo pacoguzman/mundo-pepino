@@ -99,6 +99,7 @@ module MundoPepino
             MundoPepino.world.send "#{action}_#{model.name.underscore}_path"
           end
         end
+
       end
     end
   end
