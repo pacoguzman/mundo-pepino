@@ -46,4 +46,4 @@ Característica: pulso una secuencia de enlaces y/o botones
          | enlace  | Volver                |
          | botón   | Galleta de la fortuna |
     Entonces veo la etiqueta H1 con el valor "Sorry, not implemented yet"
-
+    

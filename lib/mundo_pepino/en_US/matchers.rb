@@ -17,7 +17,6 @@ module MundoPepino
         '(?:that I am (?:in|on|at)|I visit|I go to)'
       end
     end
-
   end
 end
 require 'mundo_pepino/matchers_delegation'
