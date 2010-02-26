@@ -1,3 +1,4 @@
+# language: es
 Característica: Debo estar en la página de creación de recurso
   Antecedentes:
     Cuando visito la página de creación de huerto

@@ -1,3 +1,4 @@
+# language: es
 Característica: Debo estar en página de índice (index) de recursos de un modelo
 
   Escenario: Debería estar en el índice de un tipo de recurso (index)

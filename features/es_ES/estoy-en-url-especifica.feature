@@ -1,3 +1,4 @@
+# language: es
 Característica: debería estar en una URL específica
 
   Escenario: Debería estar en una URL específica op. indicada con un nombre coloquial
