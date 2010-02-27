@@ -5,9 +5,10 @@ Feature: caracteristica generator
     Given a Rails app
       And "mundo-pepino" in "." as one of its plugins
       And "string-mapper" in "features/support/app/vendor/plugins/string-mapper" as one of its plugins
-      And "cucumber-0.5.0" in "features/support/app/vendor/plugins/cucumber-0.5.0" as one of its plugins
-      And "cucumber-rails-0.2.0" in "features/support/app/vendor/plugins/cucumber-rails-0.2.0" as one of its plugins
-      And I run executable "script/generate" with arguments "cucumber --webrat"
+      # TODO we can't link cucumber and cucumber-rails to vendor/plugins
+      #And "cucumber-0.6.2" in "features/support/app/vendor/plugins/cucumber-0.6.2" as one of its plugins
+      #And "cucumber-rails-0.3.0" in "features/support/app/vendor/plugins/cucumber-rails-0.3.0" as one of its plugins
+      And I run executable "script/generate" with arguments "cucumber --webrat --rspec"
     
   Scenario Outline: generate caracteristica like README says
     Given I run executable "script/generate" with arguments "<generator>"
