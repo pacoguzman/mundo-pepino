@@ -5,9 +5,6 @@ Feature: caracteristica generator
     Given a Rails app
       And "mundo-pepino" in "." as one of its plugins
       And "string-mapper" in "features/support/app/vendor/plugins/string-mapper" as one of its plugins
-      # TODO we can't link cucumber and cucumber-rails to vendor/plugins
-      #And "cucumber-0.6.2" in "features/support/app/vendor/plugins/cucumber-0.6.2" as one of its plugins
-      #And "cucumber-rails-0.3.0" in "features/support/app/vendor/plugins/cucumber-rails-0.3.0" as one of its plugins
       And I run executable "script/generate" with arguments "cucumber --webrat --rspec"
     
   Scenario Outline: generate caracteristica like README says
@@ -35,7 +32,7 @@ Feature: caracteristica generator
       | mundo_pepino_steps |
     
 
-  Scenario Outline: generate característica setting language: es at the begging of the file
+  Scenario Outline: generate característica setting language: es at the beginning of the file
     Given I run executable "script/generate" with arguments "<generator>"
 
      When I run executable "script/generate" with arguments "caracteristica Orchard Huerto name:string:nombre"
